@@ -5,12 +5,10 @@ BTPD_SRC    = ${wildcard btpd/*.c}
 BTPD_DEPS   = ${wildcard btpd/*.h}
 BTPD_OBJ    = ${BTPD_SRC:.c=.o}
 
-BTCLI_SRC   = ${wildcard cli/*.c}
-BTCLI_DEPS  = ${wildcard cli/*.h}
+BTCLI_SRC   = btcli.c
 BTCLI_OBJ   = ${BTCLI_SRC:.c=.o}
 
-BTINFO_SRC  = ${wildcard info/*.c}
-BTINFO_DEPS = ${wildcard info/*.h}
+BTINFO_SRC  = btinfo.c
 BTINFO_OBJ  = ${BTINFO_SRC:.c=.o}
 
 MISC_SRC    = ${wildcard misc/*.c}
@@ -23,7 +21,7 @@ EVLOOP_OBJ  = ${EVLOOP_SRC:.c=.o}
 
 include config.mk
 
-all: options btpd/btpd info/btinfo cli/btcli
+all: options btpd/btpd btinfo btcli
 
 options:
 	@echo btpd build options:
@@ -45,20 +43,21 @@ evloop/libevloop.a: ${EVLOOP_OBJ}
 btpd/btpd: ${BTPD_OBJ} misc/libmisc.a evloop/libevloop.a
 	${CC} ${CFLAGS} -o $@ ${BTPD_OBJ}	 misc/libmisc.a evloop/libevloop.a ${LDFLAGS}
 
-info/btinfo: ${BTINFO_OBJ} misc/libmisc.a
+btinfo: ${BTINFO_OBJ} misc/libmisc.a
 	${CC} ${CFLAGS} -o $@ ${BTINFO_OBJ} misc/libmisc.a ${LDFLAGS}
 
-cli/btcli: ${BTCLI_OBJ} misc/libmisc.a
+btcli: ${BTCLI_OBJ} misc/libmisc.a
 	${CC} ${CFLAGS} -o $@  ${BTCLI_OBJ}  misc/libmisc.a ${LDFLAGS}
 
 clean:
-	rm -f btpd/btpd cli/btcli info/btinfo\
+	rm -f btpd/btpd btcli btinfo\
+		*.o *.a\
 		**/*.o **/*.a\
 		btpd-${VERSION}.tar.gz
 
 dist: clean
 	mkdir -p btpd-${VERSION}
-	cp -R COPYRIGHT Makefile README CHANGES configure config.mk btpd cli doc evloop info misc\
+	cp -R COPYRIGHT Makefile README CHANGES configure config.mk btpd btcli.c doc evloop btinfo.c misc\
 		btpd-${VERSION}
 	tar -cf btpd-${VERSION}.tar btpd-${VERSION}
 	gzip btpd-${VERSION}.tar
@@ -66,7 +65,7 @@ dist: clean
 
 install: all
 	mkdir -p ${DESTDIR}${PREFIX}/bin
-	cp -f btpd/btpd cli/btcli info/btinfo ${DESTDIR}${PREFIX}/bin
+	cp -f btpd/btpd btcli btinfo ${DESTDIR}${PREFIX}/bin
 	chmod 755 ${DESTDIR}${PREFIX}/bin/btpd
 	chmod 755 ${DESTDIR}${PREFIX}/bin/btcli
 	chmod 755 ${DESTDIR}${PREFIX}/bin/btinfo
